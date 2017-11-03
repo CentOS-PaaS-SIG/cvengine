@@ -22,6 +22,17 @@ class BasePlatformHandler(object):
         self.artifacts = artifacts
         self.host_data_out = self.CONTAINER_ARTIFACTS_FOLDER
 
+        ############################################################
+        #                                                          #
+        # These variables should be explicitly set in the platform #
+        # handler subclasses.                                      #
+        #                                                          #
+        ############################################################
+        self.ansible_cmd = None
+        self.ansible_data = None
+        self.run_playbooks_locally = None
+        ############################################################
+
         self.extra_vars = {
             'instance_name': self.instance_name,
             'host_data_out': self.host_data_out
