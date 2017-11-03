@@ -7,11 +7,10 @@ from OpenShift.oc import OC
 
 class ExistingOpenshiftHandler(BasePlatformHandler):
     def __init__(self, host_test, env_config_yaml,
-                 artifacts, common_vars, host_data_out):
+                 artifacts, common_vars):
 
         super(ExistingOpenshiftHandler, self).__init__(host_test, env_config_yaml,
-                                                       artifacts, common_vars,
-                                                       host_data_out)
+                                                       artifacts, common_vars)
 
         oc_path = get_install_oc()
         oc = None
@@ -32,6 +31,6 @@ class ExistingOpenshiftHandler(BasePlatformHandler):
         }
         self.run_playbooks_locally = True
         self.ansible_cmd = ('export ANSIBLE_HOST_KEY_CHECKING=False; '
-                            '/usr/bin/ansible-playbook '
+                            'ansible-playbook '
                             '-v -i "{host}," -c local {playbook_path} '
                             '--extra-vars "{extra_vars_file}"')

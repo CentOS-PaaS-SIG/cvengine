@@ -11,15 +11,16 @@ class BasePlatformHandler(object):
 
     EXTRA_VARS_FILE = '/tmp/extra_vars.json'
     EXEC_CMD_SUFFIX = 'exec -i {0}'
+    CONTAINER_ARTIFACTS_FOLDER = '/tmp/cvartifacts'
 
     def __init__(self, host_test, env_config_yaml,
-                 artifacts, common_vars, host_data_out):
+                 artifacts, common_vars):
         self.host_test = host_test
         self.env_config = env_config_yaml
         self.playbooks = self.host_test['playbooks']
         self.instance_name = self.host_test.get('instance_name', 'container_instance')
         self.artifacts = artifacts
-        self.host_data_out = host_data_out
+        self.host_data_out = self.CONTAINER_ARTIFACTS_FOLDER
 
         self.extra_vars = {
             'instance_name': self.instance_name,

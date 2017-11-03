@@ -10,4 +10,5 @@ setup(name='cvengine',
       packages=['cvengine'],
       install_requires=['paramiko',
                         'scp',
-                        'diaper'])
+                        'diaper',
+                        'ansible'])
