@@ -1,20 +1,12 @@
 - name: Deploy and Test {{ run_name }}
   hosts: all
   become: yes
-  vars:
-    container_registry: "{{ image_url | regex_replace('^(?P<registry>.+?)/(?P<image>.+)$', '\\g<registry>') }}"
   tasks:
-  - name: Add insecure-registry
-    shell: echo "INSECURE_REGISTRY='--insecure-registry {{ container_registry }}'" >> /etc/sysconfig/docker;
-
-  - name: Restart docker
-    shell: systemctl restart docker
-
   - name: Pull {{ container_name }} image
     shell: "docker pull {{ image_url }}"
 
   - name: Run the image
-    shell: "docker run -n {{ instance_name }} {{ image_url }}"
+    shell: "docker run --name {{ instance_name }} {{ image_url }}"
 
   - name: Create Additional Artifacts
     shell: docker images > {{ host_data_out }}/docker_images.out; docker ps -a > {{ host_data_out }}/docker_ps_a.out; cp /etc/os-release {{ host_data_out }}/os-release
