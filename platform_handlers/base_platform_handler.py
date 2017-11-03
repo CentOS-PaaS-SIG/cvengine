@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import json
+import tempfile
 import traceback
 
 from util.fetch import fetch_remote_artifact
@@ -9,7 +10,6 @@ from util.run import run_ansible_cmd, run_cmd
 
 class BasePlatformHandler(object):
 
-    EXTRA_VARS_FILE = '/tmp/extra_vars.json'
     EXEC_CMD_SUFFIX = 'exec -i {0}'
     CONTAINER_ARTIFACTS_FOLDER = '/tmp/cvartifacts'
 
@@ -21,6 +21,8 @@ class BasePlatformHandler(object):
         self.instance_name = self.host_test.get('instance_name', 'container_instance')
         self.artifacts = artifacts
         self.host_data_out = self.CONTAINER_ARTIFACTS_FOLDER
+        self.extra_vars_file = tempfile.NamedTemporaryFile(prefix='extra_vars',
+                                                           suffix='.json')
 
         ############################################################
         #                                                          #
@@ -43,9 +45,9 @@ class BasePlatformHandler(object):
     def deploy_container(self):
         raise NotImplementedError()
 
-    def dump_extra_vars(self):
-        with open(self.EXTRA_VARS_FILE, 'w') as f:
-            json.dump(self.extra_vars, f)
+    def dump_extra_vars(self, extra_vars):
+        with open(self.extra_vars_file, 'w') as f:
+            json.dump(extra_vars, f)
 
     def run(self):
         run_ansible_cmd('mkdir {0}'.format(self.extra_vars['host_data_out']),
@@ -60,11 +62,11 @@ class BasePlatformHandler(object):
 
             playbook_extra_vars = self.extra_vars.copy()
             playbook_extra_vars.update(playbook.get('vars', {}))
-            self.dump_extra_vars()
+            self.dump_extra_vars(playbook_extra_vars)
 
             try:
                 run_cmd(self.ansible_cmd.format(playbook_path=playbook['local_path'],
-                                                extra_vars_file=('@' + self.EXTRA_VARS_FILE),
+                                                extra_vars_file=('@' + self.extra_vars_file),
                                                 **self.ansible_data))
             except Exception:
                 print('Playbook failed, stopping execution.')
