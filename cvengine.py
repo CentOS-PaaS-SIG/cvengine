@@ -2,6 +2,7 @@
 
 import os
 import ssl
+import traceback
 import urllib
 import urllib2
 import urlparse
@@ -43,7 +44,12 @@ def run_container_validation(image_url, chidata_url, config,
         url = pb['url']
         base_name = os.path.basename(urlparse.urlsplit(url).path)
         new_path = os.path.join('/tmp', base_name)
-        urllib.urlretrieve(url, new_path)
+        try:
+            urllib.urlretrieve(url, new_path)
+        except Exception:
+            msg = 'Error when downloading playbook {0}: {1}'
+            msg = msg.format(url, traceback.format_exc())
+            raise Exception(msg)
         pb['local_path'] = new_path
 
     if host_test['host_type'] not in host_type_handlers:
