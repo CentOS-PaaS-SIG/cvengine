@@ -31,12 +31,14 @@ def run_container_validation(image_url, chidata_url, config,
     target_host_platform = config['target_host_platform']
     host_test = None
     for host in chidata['Test']:
-        if (host['host_type'] == target_host_platform) or (not target_host_platform and host['default']):
+        if ((host['host_type'] == target_host_platform) or
+                (not target_host_platform and host['default'])):
             host_test = host
             break
 
     if not host_test:
-        raise ValueError('Given host_type matched none in CHIData or no default provided.')
+        msg = 'Given host_type matched none in CHIData or no default provided.'
+        raise ValueError(msg)
 
     # pre-download playbook files
     playbooks = host_test['playbooks']
@@ -53,7 +55,8 @@ def run_container_validation(image_url, chidata_url, config,
         pb['local_path'] = new_path
 
     if host_test['host_type'] not in host_type_handlers:
-        raise ValueError('{} is not a valid host_type'.format(host_test['host_type']))
+        msg = '{} is not a valid host_type'.format(host_test['host_type'])
+        raise ValueError(msg)
 
     run_cmd('ansible-playbook --version')
     run_cmd('ansible --version')

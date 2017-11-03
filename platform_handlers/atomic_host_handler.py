@@ -11,7 +11,7 @@ class AtomicHostHandler(BasePlatformHandler):
                                                 artifacts, common_vars)
 
         self.extra_vars['exec_cmd'] = 'docker {0}'.format(self.EXEC_CMD_SUFFIX)
-        self.container_fetch_artifact_command = 'docker cp'
+        self.fetch_artifact_cmd = 'docker cp'
 
         self.test_host = self.env_config['atomic-host'][0]
         host_user = self.test_host['credentials']['user']
@@ -26,6 +26,7 @@ class AtomicHostHandler(BasePlatformHandler):
         self.run_playbooks_locally = False
         self.ansible_cmd = ('export ANSIBLE_HOST_KEY_CHECKING=False; '
                             'ansible-playbook '
-                            '--private-key={ssh_key_path}, --key-file={ssh_key_path} '
+                            '--private-key={ssh_key_path}, '
+                            '--key-file={ssh_key_path} '
                             '-v -u {user} -i "{host}," {playbook_path} '
                             '--extra-vars "{extra_vars_file}"')

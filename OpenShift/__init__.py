@@ -4,7 +4,9 @@ import urllib
 import logging as log
 
 
-OC_DOWNLOAD = 'https://github.com/openshift/origin/releases/download/v1.4.1/openshift-origin-client-tools-v1.4.1-3f9807a-linux-64bit.tar.gz'
+OC_DOWNLOAD = ('https://github.com/openshift/origin/releases/download/v1.4.1/'
+               'openshift-origin-client-tools-v1.4.1-3f9807a-linux-64bit'
+               '.tar.gz')
 OC_PATH = '/tmp/oc/oc'
 
 

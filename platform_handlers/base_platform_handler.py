@@ -18,7 +18,8 @@ class BasePlatformHandler(object):
         self.host_test = host_test
         self.env_config = env_config_yaml
         self.playbooks = self.host_test['playbooks']
-        self.instance_name = self.host_test.get('instance_name', 'container_instance')
+        self.instance_name = self.host_test.get('instance_name',
+                                                'container_instance')
         self.artifacts = artifacts
         self.host_data_out = self.CONTAINER_ARTIFACTS_FOLDER
         self.extra_vars_file = tempfile.NamedTemporaryFile(prefix='extra_vars',
@@ -33,6 +34,7 @@ class BasePlatformHandler(object):
         self.ansible_cmd = None
         self.ansible_data = None
         self.run_playbooks_locally = None
+        self.fetch_artifact_cmd = None
         ############################################################
 
         self.extra_vars = {
@@ -46,7 +48,7 @@ class BasePlatformHandler(object):
         raise NotImplementedError()
 
     def dump_extra_vars(self, extra_vars):
-        with open(self.extra_vars_file, 'w') as f:
+        with open(self.extra_vars_file.name, 'w') as f:
             json.dump(extra_vars, f)
 
     def run(self):
@@ -65,9 +67,12 @@ class BasePlatformHandler(object):
             self.dump_extra_vars(playbook_extra_vars)
 
             try:
-                run_cmd(self.ansible_cmd.format(playbook_path=playbook['local_path'],
-                                                extra_vars_file=('@' + self.extra_vars_file),
-                                                **self.ansible_data))
+                path = playbook['local_path']
+                ev = '@{0}'.format(self.extra_vars_file.name)
+                cmd = self.ansible_cmd.format(playbook_path=path,
+                                              extra_vars_file=ev,
+                                              **self.ansible_data)
+                run_cmd(cmd)
             except Exception:
                 print('Playbook failed, stopping execution.')
                 print(traceback.format_exc())
@@ -77,19 +82,20 @@ class BasePlatformHandler(object):
         if self.artifacts and 'container_artifacts' in self.artifacts:
             print('Copying container artifacts to host')
             for artifact in self.artifacts['container_artifacts']:
-                docker_cp = '{0} {1}:{2} {3}'.format(self.container_fetch_artifact_command,
+                docker_cp = '{0} {1}:{2} {3}'.format(self.fetch_artifact_cmd,
                                                      self.instance_name,
                                                      artifact,
                                                      self.host_data_out)
                 try:
                     run_ansible_cmd(docker_cp, self.ansible_data)
                 except Exception:
-                    pass  # this dir may not exist and that's not grounds for hard fail
+                    pass  # Not grounds for had fail if nonexistent dir
 
         if not self.run_playbooks_locally:
+            key = self.test_host['credentials']['ssh_key_path']
             test_host_creds = {
                 'user': self.test_host['credentials']['user'],
-                'private_key_path': self.test_host['credentials']['ssh_key_path'],
+                'private_key_path': key,
                 'password': self.test_host['credentials'].get('password', None)
             }
 
@@ -104,9 +110,12 @@ class BasePlatformHandler(object):
                 try:
                     print('Fetching container artifacts from host')
                     if self.run_playbooks_locally:
-                        cmd = 'cp -r {0} {1}'.format(artifact, artifacts_directory)
+                        cmd = 'cp -r {0} {1}'.format(artifact,
+                                                     artifacts_directory)
                         run_ansible_cmd(cmd, self.ansible_data, local=True)
                     else:
-                        fetch_remote_artifact(self.test_host['ip_address'], test_host_creds, artifact, artifacts_directory)
+                        fetch_remote_artifact(self.test_host['ip_address'],
+                                              test_host_creds, artifact,
+                                              artifacts_directory)
                 except Exception:
-                    pass  # this dir may not exist and that's not grounds for hard fail
+                    pass  # Not grounds for had fail if nonexistent dir

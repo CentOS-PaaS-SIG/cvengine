@@ -9,7 +9,8 @@ class ExistingOpenshiftHandler(BasePlatformHandler):
     def __init__(self, host_test, env_config_yaml,
                  artifacts, common_vars):
 
-        super(ExistingOpenshiftHandler, self).__init__(host_test, env_config_yaml,
+        super(ExistingOpenshiftHandler, self).__init__(host_test,
+                                                       env_config_yaml,
                                                        artifacts, common_vars)
 
         oc_path = get_install_oc()
@@ -23,8 +24,9 @@ class ExistingOpenshiftHandler(BasePlatformHandler):
             oc.login()
             oc.clear_resources()
 
-        self.extra_vars['exec_cmd'] = '{0} {1}'.format(oc_path, self.EXEC_CMD_SUFFIX)
-        self.container_fetch_artifact_command = '{0} rsync'.format(oc_path)
+        self.extra_vars['exec_cmd'] = '{0} {1}'.format(oc_path,
+                                                       self.EXEC_CMD_SUFFIX)
+        self.fetch_artifact_cmd = '{0} rsync'.format(oc_path)
 
         self.ansible_data = {
             'host': 'localhost'

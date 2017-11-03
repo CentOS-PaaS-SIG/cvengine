@@ -51,7 +51,8 @@ class OC(object):
         proc = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
         out, err = proc.communicate()
         if proc.returncode != 0:
-            raise Exception('oc command failed! Please see console output for details.')
+            msg = 'oc command failed! Please see console output for details.'
+            raise Exception(msg)
 
         if output_json:
             return json.loads(out)
@@ -70,12 +71,14 @@ class OC(object):
         """
         template = {}
         try:
-            template = self._run_oc('get templates ' + template_name, output_json=True)
+            template = self._run_oc('get templates ' + template_name,
+                                    output_json=True)
         except Exception:
             # exception means not found, so just create
             pass
         if 'kind' in template:
-            log.info('{} exists already, deleting before recreating.'.format(template_name))
+            msg = '{} exists already, deleting before recreating.'
+            log.info(msg.format(template_name))
             self._run_oc('delete templates ' + template_name)
 
         return self._run_oc('create -f ' + template_path)
@@ -85,7 +88,8 @@ class OC(object):
         Create a container instance from pre-existing template
         or from a template added with add_template
         """
-        return self._run_oc("new-app {} --name={}".format(template_name, name), output_json=False)
+        return self._run_oc("new-app {} --name={}".format(template_name, name),
+                            output_json=False)
 
     def get_route(self, name):
         """
