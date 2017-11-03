@@ -1,0 +1,11 @@
+test:
+    image_url: alpine
+    cvdata_url: https://github.com/CentOS-PaaS-SIG/cvengine/raw/master/example/cvdata.yml
+    target_host_platform: atomic
+environment:
+    atomic-host:
+        - ip_address: CHANGEME
+          machine_name: CHANGEME
+          credentials:
+              user: CHANGEME
+              ssh_key_path: CHANGEME

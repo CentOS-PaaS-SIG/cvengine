@@ -27,12 +27,12 @@ def run_cmd(cmd, virtualenv=None, working_directory=None, env_vars={}):
 def run_ansible_cmd(cmd, data, local=False, sudo=True):
     if local:
         ans = ('export ANSIBLE_HOST_KEY_CHECKING=False; '
-               '/usr/bin/ansible all '
-               '-v -i "{host}," -c local -m shell -a "{cmd}"')
+               'ansible all '
+               '-v -i "{host}," -c local -m cmd -a "{cmd}"')
         ans = ans.format(cmd=cmd, **data)
     else:
         ans = ('export ANSIBLE_HOST_KEY_CHECKING=False; '
-               '/usr/bin/ansible all '
+               'ansible all '
                '--private-key={ssh_key_path} --key-file={ssh_key_path} '
                '-v -u {user} -i "{host}," -a "{cmd}" {become}')
         ans = ans.format(cmd=cmd, become=('--become' if sudo else ''), **data)

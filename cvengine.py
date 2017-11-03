@@ -2,7 +2,6 @@
 
 import os
 import ssl
-import tempfile
 import urllib
 import urllib2
 import urlparse
@@ -50,19 +49,17 @@ def run_container_validation(image_url, chidata_url, config,
     if host_test['host_type'] not in host_type_handlers:
         raise ValueError('{} is not a valid host_type'.format(host_test['host_type']))
 
-    run_cmd('/usr/bin/ansible-playbook --version')
-    run_cmd('/usr/bin/ansible --version')
+    run_cmd('ansible-playbook --version')
+    run_cmd('ansible --version')
 
     artifacts = chidata.get('Artifacts')
     extra_variables['image_url'] = image_url
 
-    host_data_out = tempfile.mkdtemp(prefix='container_host_data_')
     environment_config = config['environment']
 
     handler_class = host_type_handlers[host_test['host_type']]
     handler = handler_class(host_test, environment_config,
-                            artifacts, extra_variables,
-                            host_data_out)
+                            artifacts, extra_variables)
     try:
         handler.run()
     finally:
