@@ -2,7 +2,7 @@ Test:
   - host_type: atomic
     instance_name: cvengine_example
     playbooks:
-      - url: https://github.com/CentOS-PaaS-SIG/cvengine/raw/master/examples/atomic-playbook.yml
+      - url: https://github.com/CentOS-PaaS-SIG/cvengine/raw/master/example/atomic-playbook.yml
 
 Artifacts:
   container_artifacts:
