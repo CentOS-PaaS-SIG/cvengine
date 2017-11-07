@@ -44,7 +44,8 @@ def run_cmd(cmd, virtualenv=None, working_directory=None, env_vars={}):
     return res
 
 
-def run_ansible_cmd(cmd, data, local=False, sudo=True):
+def run_ansible_cmd(cmd, inventory, ansible_config,
+                    local=False, sudo=True):
     """Helper function to run an ansible command
 
     Execute the specified command in a local shell via ansible. This is used
@@ -53,29 +54,31 @@ def run_ansible_cmd(cmd, data, local=False, sudo=True):
 
     Args:
         cmd (str): The command to be executed
-        data (dict): A set of keys containing Ansible connection information
-            including user and ssh_key_path
+        inventory (str): A representation of the ansible inventory. This is
+            any string that can be passed as the value of the --inventory
+            argument to the ansible command. In practice, this will usually
+            be a path to an ansible inventory file. Additionally, it could be
+            the string "localhost", or an IP address
+        ansible_config (str): A path to an ansible config file
         local (bool, optional): Whether the command should be executed against
             the local machine. If false, we assume that the target of the
             ansible command is a remote host. Defaults to False.
         sudo (bool, optional): Whether to execute a command against the host
             with escalated privileges. Defaults to True.
 
-    Todo:
-        * Clean up the way credentials are passed to playbooks (instead of
-          via the data argument) so that this function is easier to
-          understand.
     """
     if local:
-        ans = ('export ANSIBLE_HOST_KEY_CHECKING=False; '
+        ans = ('ANSIBLE_CONFIG={cfg} '
                'ansible all '
-               '-v -i "{host}," -c local -m cmd -a "{cmd}"')
-        ans = ans.format(cmd=cmd, **data)
+               '-v -i "{inventory}" -c local -m cmd -a "{cmd}"')
+        ans = ans.format(cfg=ansible_config, inventory=inventory,
+                         cmd=cmd)
     else:
-        ans = ('export ANSIBLE_HOST_KEY_CHECKING=False; '
+        ans = ('ANSIBLE_CONFIG={cfg} '
                'ansible all '
-               '--private-key={ssh_key_path} --key-file={ssh_key_path} '
-               '-v -u {user} -i "{host}," -a "{cmd}" {become}')
-        ans = ans.format(cmd=cmd, become=('--become' if sudo else ''), **data)
+               '-v -i "{inventory}" -a "{cmd}" {become}')
+        ans = ans.format(cfg=ansible_config, cmd=cmd,
+                         inventory=inventory,
+                         become=('--become' if sudo else ''))
 
     return run_cmd(ans)

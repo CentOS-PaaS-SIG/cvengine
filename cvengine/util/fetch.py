@@ -62,7 +62,7 @@ def setup_ssh_connection(target_machine, target_credentials):
     """
     ssh_creds = {'username': target_credentials['user'],
                  'password': target_credentials['password'],
-                 'key_filename': target_credentials.get('private_key_path',
+                 'key_filename': target_credentials.get('ssh_key_path',
                                                         None),
                  'look_for_keys': True,
                  'allow_agent': True,
