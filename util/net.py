@@ -15,13 +15,15 @@ def random_port(tcp=True):
     Args:
         tcp: Return a TCP port number if True, UDP if False
 
-    This may not be reliable at all due to an inherent race condition. This works
-    by creating a socket on an ephemeral port, inspecting it to see what port was used,
-    closing it, and returning that port number. In the time between closing the socket
-    and opening a new one, it's possible for the OS to reopen that port for another purpose.
+    This may not be reliable at all due to an inherent race condition.
+    This works by creating a socket on an ephemeral port, inspecting it
+    to see what port was used, closing it, and returning that port number.
+    In the time between closing the socket and opening a new one, it's
+    possible for the OS to reopen that port for another purpose.
 
-    In practical testing, this race condition did not result in a failure to (re)open the
-    returned port number, making this solution squarely "good enough for now".
+    In practical testing, this race condition did not result in a failure to
+    (re)open the returned port number, making this solution squarely
+    "good enough for now".
     """
     # Port 0 will allocate an ephemeral port
     socktype = socket.SOCK_STREAM if tcp else socket.SOCK_DGRAM
@@ -30,17 +32,6 @@ def random_port(tcp=True):
     addr, port = s.getsockname()
     s.close()
     return port
-
-# REM
-# def my_ip_address(http=False):
-#     """Get the ip address of the host running tests using the service listed in cfme_data['ip_echo']
-#
-#     The ip echo endpoint is expected to write the ip address to the socket and close the
-#     connection. See a working example of this in :py:func:`ip_echo_socket`.
-#
-#     """
-#     # the pytest store does this work, it's included here for convenience
-#     return store.my_ip_address
 
 
 def ip_echo_socket(port=32123):
@@ -77,7 +68,8 @@ def net_check(port, addr=None, force=False):
 
 
 def resolve_hostname(hostname, force=False):
-    """Cached DNS resolver. If the hostname does not resolve to an IP, returns None."""
+    """Cached DNS resolver. If the hostname does not resolve to an
+    IP, returns None."""
     if hostname not in _dns_cache or force:
         try:
             _dns_cache[hostname] = socket.gethostbyname(hostname)
@@ -87,9 +79,10 @@ def resolve_hostname(hostname, force=False):
 
 
 def resolve_ips(host_iterable, force_dns=False):
-    """Takes list of hostnames, ips and another things. If the item is not an IP, it will be tried
-    to be converted to an IP. If that succeeds, it is appended to the set together with original
-    hostname. If it can't be resolved, just the original hostname is appended.
+    """Takes list of hostnames, ips and another things. If the item is not
+    an IP, it will be tried to be converted to an IP. If that succeeds, it
+    is appended to the set together with original hostname. If it can't be
+    resolved, just the original hostname is appended.
     """
     result = set([])
     for host in map(str, host_iterable):

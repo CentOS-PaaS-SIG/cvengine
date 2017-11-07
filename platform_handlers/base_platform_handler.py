@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import json
+import tempfile
 import traceback
 
 from util.fetch import fetch_remote_artifact
@@ -9,7 +10,6 @@ from util.run import run_ansible_cmd, run_cmd
 
 class BasePlatformHandler(object):
 
-    EXTRA_VARS_FILE = '/tmp/extra_vars.json'
     EXEC_CMD_SUFFIX = 'exec -i {0}'
     CONTAINER_ARTIFACTS_FOLDER = '/tmp/cvartifacts'
 
@@ -18,9 +18,24 @@ class BasePlatformHandler(object):
         self.host_test = host_test
         self.env_config = env_config_yaml
         self.playbooks = self.host_test['playbooks']
-        self.instance_name = self.host_test.get('instance_name', 'container_instance')
+        self.instance_name = self.host_test.get('instance_name',
+                                                'container_instance')
         self.artifacts = artifacts
         self.host_data_out = self.CONTAINER_ARTIFACTS_FOLDER
+        self.extra_vars_file = tempfile.NamedTemporaryFile(prefix='extra_vars',
+                                                           suffix='.json')
+
+        ############################################################
+        #                                                          #
+        # These variables should be explicitly set in the platform #
+        # handler subclasses.                                      #
+        #                                                          #
+        ############################################################
+        self.ansible_cmd = None
+        self.ansible_data = None
+        self.run_playbooks_locally = None
+        self.fetch_artifact_cmd = None
+        ############################################################
 
         self.extra_vars = {
             'instance_name': self.instance_name,
@@ -32,9 +47,9 @@ class BasePlatformHandler(object):
     def deploy_container(self):
         raise NotImplementedError()
 
-    def dump_extra_vars(self):
-        with open(self.EXTRA_VARS_FILE, 'w') as f:
-            json.dump(self.extra_vars, f)
+    def dump_extra_vars(self, extra_vars):
+        with open(self.extra_vars_file.name, 'w') as f:
+            json.dump(extra_vars, f)
 
     def run(self):
         run_ansible_cmd('mkdir {0}'.format(self.extra_vars['host_data_out']),
@@ -49,12 +64,15 @@ class BasePlatformHandler(object):
 
             playbook_extra_vars = self.extra_vars.copy()
             playbook_extra_vars.update(playbook.get('vars', {}))
-            self.dump_extra_vars()
+            self.dump_extra_vars(playbook_extra_vars)
 
             try:
-                run_cmd(self.ansible_cmd.format(playbook_path=playbook['local_path'],
-                                                extra_vars_file=('@' + self.EXTRA_VARS_FILE),
-                                                **self.ansible_data))
+                path = playbook['local_path']
+                ev = '@{0}'.format(self.extra_vars_file.name)
+                cmd = self.ansible_cmd.format(playbook_path=path,
+                                              extra_vars_file=ev,
+                                              **self.ansible_data)
+                run_cmd(cmd)
             except Exception:
                 print('Playbook failed, stopping execution.')
                 print(traceback.format_exc())
@@ -64,19 +82,20 @@ class BasePlatformHandler(object):
         if self.artifacts and 'container_artifacts' in self.artifacts:
             print('Copying container artifacts to host')
             for artifact in self.artifacts['container_artifacts']:
-                docker_cp = '{0} {1}:{2} {3}'.format(self.container_fetch_artifact_command,
+                docker_cp = '{0} {1}:{2} {3}'.format(self.fetch_artifact_cmd,
                                                      self.instance_name,
                                                      artifact,
                                                      self.host_data_out)
                 try:
                     run_ansible_cmd(docker_cp, self.ansible_data)
                 except Exception:
-                    pass  # this dir may not exist and that's not grounds for hard fail
+                    pass  # Not grounds for had fail if nonexistent dir
 
         if not self.run_playbooks_locally:
+            key = self.test_host['credentials']['ssh_key_path']
             test_host_creds = {
                 'user': self.test_host['credentials']['user'],
-                'private_key_path': self.test_host['credentials']['ssh_key_path'],
+                'private_key_path': key,
                 'password': self.test_host['credentials'].get('password', None)
             }
 
@@ -91,9 +110,12 @@ class BasePlatformHandler(object):
                 try:
                     print('Fetching container artifacts from host')
                     if self.run_playbooks_locally:
-                        cmd = 'cp -r {0} {1}'.format(artifact, artifacts_directory)
+                        cmd = 'cp -r {0} {1}'.format(artifact,
+                                                     artifacts_directory)
                         run_ansible_cmd(cmd, self.ansible_data, local=True)
                     else:
-                        fetch_remote_artifact(self.test_host['ip_address'], test_host_creds, artifact, artifacts_directory)
+                        fetch_remote_artifact(self.test_host['ip_address'],
+                                              test_host_creds, artifact,
+                                              artifacts_directory)
                 except Exception:
-                    pass  # this dir may not exist and that's not grounds for hard fail
+                    pass  # Not grounds for had fail if nonexistent dir
