@@ -8,8 +8,8 @@ import urllib2
 import urlparse
 import yaml
 
-from util.run import run_cmd
-from platform_handlers.atomic_host_handler import AtomicHostHandler
+from .util import run
+from .platform_handlers.atomic_host_handler import AtomicHostHandler
 
 
 host_type_handlers = {
@@ -58,8 +58,8 @@ def run_container_validation(image_url, chidata_url, config,
         msg = '{} is not a valid host_type'.format(host_test['host_type'])
         raise ValueError(msg)
 
-    run_cmd('ansible-playbook --version')
-    run_cmd('ansible --version')
+    run.run_cmd('ansible-playbook --version')
+    run.run_cmd('ansible --version')
 
     artifacts = chidata.get('Artifacts')
     extra_variables['image_url'] = image_url

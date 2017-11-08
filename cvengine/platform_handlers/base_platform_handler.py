@@ -4,8 +4,8 @@ import json
 import tempfile
 import traceback
 
-from util.fetch import fetch_remote_artifact
-from util.run import run_ansible_cmd, run_cmd
+from cvengine.util.fetch import fetch_remote_artifact
+from cvengine.util.run import run_ansible_cmd, run_cmd
 
 
 class BasePlatformHandler(object):
