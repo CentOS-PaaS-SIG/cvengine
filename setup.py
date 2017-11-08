@@ -8,6 +8,9 @@ setup(name='cvengine',
       author='Alex Corvin',
       author_email='acorvin@redhat.com',
       packages=['cvengine'],
+      entry_points={
+          'console_scripts': ['cvengine=cvengine.cvengine:main']
+      },
       install_requires=['paramiko',
                         'scp',
                         'diaper',

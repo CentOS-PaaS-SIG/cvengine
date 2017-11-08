@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
+
 
 import os
 import ssl
@@ -77,3 +78,18 @@ def run_container_validation(image_url, chidata_url, config,
         raise
     finally:
         handler.teardown(artifacts_directory)
+
+
+def main():
+    image_url = os.environ['CV_IMAGE_URL']
+    cvdata_url = os.environ['CV_CVDATA_URL']
+    cv_config = yaml.load(os.environ['CV_CONFIG'])
+    artifacts_directory = os.environ['CV_ARTIFACTS_DIRECTORY']
+    extra_vars = yaml.load(os.environ.get('CV_EXTRA_VARS', '{}'))
+
+    run_container_validation(image_url, cvdata_url, cv_config,
+                             artifacts_directory, extra_vars)
+
+
+if __name__ == '__main__':
+    main()
