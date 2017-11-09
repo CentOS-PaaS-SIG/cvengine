@@ -71,5 +71,9 @@ def run_container_validation(image_url, chidata_url, config,
                             artifacts, extra_variables)
     try:
         handler.run()
+    except Exception:
+        msg = 'Error encountered while running handler: {0}'
+        print(msg.format(traceback.format_exc()))
+        raise
     finally:
         handler.teardown(artifacts_directory)
