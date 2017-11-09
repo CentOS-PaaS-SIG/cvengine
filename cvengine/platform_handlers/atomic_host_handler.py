@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 from base_platform_handler import BasePlatformHandler
 
 
