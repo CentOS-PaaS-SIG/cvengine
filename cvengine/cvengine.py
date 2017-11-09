@@ -1,4 +1,5 @@
-#! /usr/bin/env python
+#! /usr/bin/env python2
+
 
 import os
 import ssl
@@ -8,8 +9,8 @@ import urllib2
 import urlparse
 import yaml
 
-from util.run import run_cmd
-from platform_handlers.atomic_host_handler import AtomicHostHandler
+from .util import run
+from .platform_handlers.atomic_host_handler import AtomicHostHandler
 
 
 host_type_handlers = {
@@ -58,8 +59,8 @@ def run_container_validation(image_url, chidata_url, config,
         msg = '{} is not a valid host_type'.format(host_test['host_type'])
         raise ValueError(msg)
 
-    run_cmd('ansible-playbook --version')
-    run_cmd('ansible --version')
+    run.run_cmd('ansible-playbook --version')
+    run.run_cmd('ansible --version')
 
     artifacts = chidata.get('Artifacts')
     extra_variables['image_url'] = image_url
@@ -77,3 +78,18 @@ def run_container_validation(image_url, chidata_url, config,
         raise
     finally:
         handler.teardown(artifacts_directory)
+
+
+def main():
+    image_url = os.environ['CV_IMAGE_URL']
+    cvdata_url = os.environ['CV_CVDATA_URL']
+    cv_config = yaml.load(os.environ['CV_CONFIG'])
+    artifacts_directory = os.environ['CV_ARTIFACTS_DIRECTORY']
+    extra_vars = yaml.load(os.environ.get('CV_EXTRA_VARS', '{}'))
+
+    run_container_validation(image_url, cvdata_url, cv_config,
+                             artifacts_directory, extra_vars)
+
+
+if __name__ == '__main__':
+    main()

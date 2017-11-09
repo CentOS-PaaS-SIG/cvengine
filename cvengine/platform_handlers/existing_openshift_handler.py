@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 from base_platform_handler import BasePlatformHandler
 from OpenShift import get_install_oc
 from OpenShift.oc import OC
