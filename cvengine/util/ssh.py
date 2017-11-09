@@ -26,6 +26,10 @@ class SSHClient(paramiko.SSHClient):
 
     Allows copying/overriding and use as a context manager
     Constructor kwargs are handed directly to paramiko.SSHClient.connect()
+
+    Todo:
+        * Remote this module altogether. We shouldn't need to override the
+          official Paramiko implementation of SSHClient.
     """
 
     def __init__(self, stream_output=False, **connect_kwargs):

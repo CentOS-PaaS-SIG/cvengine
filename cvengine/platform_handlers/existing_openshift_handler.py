@@ -4,6 +4,23 @@ from OpenShift.oc import OC
 
 
 class ExistingOpenshiftHandler(BasePlatformHandler):
+    """Platform subclass for existing OpenShift instances
+
+    This class implements support for executing a container validation
+    on an OpenShift instance that has already been deployed (as opposed to
+    the CVEngine deploying the instance for you). For these validations,
+    an OpenShift instance should already exist (the configuration for which
+    will be passed to the platform handler). The local machine should have
+    network access to the OpenShift instance and be able to execute "oc"
+    commands against it. Playbooks are executed locally, against the local
+    machine, and containers are deployed and interacted with by running
+    "oc" commands.
+
+    Todo:
+        * This platform is untested and not currently supported. Add
+          official support for this.
+
+    """
     def __init__(self, host_test, env_config_yaml,
                  artifacts, common_vars):
 
