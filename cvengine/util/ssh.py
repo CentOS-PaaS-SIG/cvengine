@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-import re
 import socket
 import sys
 from collections import namedtuple
 
 import paramiko
-from scp import SCPClient
 import diaper
 
 import logging as log
@@ -172,88 +170,3 @@ class SSHClient(paramiko.SSHClient):
         # Returning two things so tuple unpacking the return works
         # even if the ssh client fails
         return SSHResult(1, None)
-
-    def run_rails_command(self, command, timeout=RUNCMD_TIMEOUT):
-        log.info("Running rails command `{}`".format(command))
-        msg = 'cd /var/www/miq/vmdb; bin/rails runner {}'
-        return self.run_command(msg.format(command), timeout=timeout)
-
-    def run_rake_command(self, command, timeout=RUNCMD_TIMEOUT):
-        log.info("Running rake command `{}`".format(command))
-        msg = 'cd /var/www/miq/vmdb; bin/rake {}'
-        return self.run_command(msg.format(command), timeout=timeout)
-
-    def put_file(self, local_file, remote_file='.', **kwargs):
-        log.info("Transferring local file {} to remote {}".format(local_file,
-                                                                  remote_file))
-        client = SCPClient(self.get_transport(),
-                           progress=self._progress_callback)
-        return client.put(local_file, remote_file, **kwargs)
-
-    def get_file(self, remote_file, local_path='', **kwargs):
-        msg = 'Transferring remote file {} to local {}'
-        log.info(msg.format(remote_file, local_path))
-        client = SCPClient(self.get_transport(),
-                           progress=self._progress_callback)
-        return client.get(remote_file, local_path, **kwargs)
-
-    def get_build_date(self):
-        return self.get_build_datetime().date()
-
-    def is_appliance_downstream(self):
-        return self.run_command("stat /var/www/miq/vmdb/BUILD").rc == 0
-
-    def uptime(self):
-        out = self.run_command('cat /proc/uptime')[1]
-        match = re.findall('\d+\.\d+', out)
-
-        if match:
-            return float(match[0])
-
-        return 0
-
-    def client_address(self):
-        res = self.run_command('echo $SSH_CLIENT')
-        # SSH_CLIENT format is 'clientip clientport serverport',
-        # we want clientip
-        if not res.output:
-            raise Exception('unable to get client address via SSH')
-        return res.output.split()[0]
-
-    def appliance_has_netapp(self):
-        return self.run_command("stat /var/www/miq/vmdb/HAS_NETAPP").rc == 0
-
-
-class SSHTail(SSHClient):
-
-    def __init__(self, remote_filename, **connect_kwargs):
-        super(SSHTail, self).__init__(stream_output=False, **connect_kwargs)
-        self._remote_filename = remote_filename
-        self._sftp_client = None
-        self._remote_file_size = None
-
-    def __iter__(self):
-        with self as sshtail:
-            fstat = sshtail._sftp_client.stat(self._remote_filename)
-            if self._remote_file_size is not None:
-                if self._remote_file_size < fstat.st_size:
-                    remote_file = self._sftp_client.open(self._remote_filename,
-                                                         'r')
-                    remote_file.seek(self._remote_file_size, 0)
-                    while (remote_file.tell() < fstat.st_size):
-                        line = remote_file.readline().rstrip()
-                        yield line
-            self._remote_file_size = fstat.st_size
-
-    def __enter__(self):
-        self.connect(**self._connect_kwargs)
-        self._sftp_client = self.open_sftp()
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        self._sftp_client.close()
-
-    def set_initial_file_end(self):
-        with self as sshtail:
-            fstat = sshtail._sftp_client.stat(self._remote_filename)
-            self._remote_file_size = fstat.st_size  # Seed initial size of file
