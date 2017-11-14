@@ -1,8 +1,7 @@
 import logging
 import os
-
-from ssh import SSHClient
-from scp import SCPClient
+import paramiko
+import scp
 
 
 def get_file_type(ssh_connection, file_path):
@@ -26,7 +25,6 @@ def get_file_type(ssh_connection, file_path):
 
     """
     cmd = 'file {0}'.format(file_path)
-    ssh_connection.connect()
     stdin, stdout, stderr = ssh_connection.exec_command(cmd)
     # Stdout will be in the following formats:
     # No such file:
@@ -58,16 +56,10 @@ def setup_ssh_connection(target_machine, target_credentials):
         target_credentials (dict): Credentials (username, password, private
             key path) for the remote host
 
-    Todo:
-        * Remote the unused tunnel return item
-        * Refactor to use official SSHclient class, not our custom one
-
     Returns:
-        tuple: A tuple containing a tunnel object (unused) and an SSHClient
-            object wrapping the ssh connection
+        SSHClient: A wrapper around the SSH connection
 
     """
-    tunnel = None
     ssh_creds = {'username': target_credentials['user'],
                  'password': target_credentials['password'],
                  'key_filename': target_credentials.get('private_key_path',
@@ -75,10 +67,11 @@ def setup_ssh_connection(target_machine, target_credentials):
                  'look_for_keys': True,
                  'allow_agent': True,
                  'port': 22}
+    ssh = paramiko.SSHClient()
+    ssh.load_system_host_keys()
+    ssh.connect(target_machine, **ssh_creds)
 
-    ssh_connection = SSHClient(hostname=target_machine, **ssh_creds)
-
-    return (tunnel, ssh_connection)
+    return ssh
 
 
 def fetch_remote_artifact(target_machine, target_credentials,
@@ -113,8 +106,8 @@ def fetch_remote_artifact(target_machine, target_credentials,
     target_basename = os.path.basename(remote_file_path)
     destination_path = os.path.join(artifacts_directory, target_basename)
 
-    tunnel, ssh_connection = setup_ssh_connection(target_machine,
-                                                  target_credentials)
+    ssh_connection = setup_ssh_connection(target_machine,
+                                          target_credentials)
 
     try:
         file_type = get_file_type(ssh_connection, remote_file_path)
@@ -128,16 +121,11 @@ def fetch_remote_artifact(target_machine, target_credentials,
         else:
             target_is_directory = False
 
-        scp = SCPClient(ssh_connection.get_transport())
-        scp.get(remote_file_path, local_path=destination_path,
-                recursive=target_is_directory)
+        scp_connection = scp.SCPClient(ssh_connection.get_transport())
+        scp_connection.get(remote_file_path, local_path=destination_path,
+                           recursive=target_is_directory)
     finally:
         try:
             ssh_connection.close()
-        except Exception:
-            pass
-        try:
-            if tunnel:
-                tunnel.close()
         except Exception:
             pass
