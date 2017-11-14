@@ -2,6 +2,16 @@ from base_platform_handler import BasePlatformHandler
 
 
 class AtomicHostHandler(BasePlatformHandler):
+    """Platform subclass for atomic host
+
+    This class implements support for executing a container validation
+    on an Atomic Host instance. For these validations, a flavor of
+    Atomic should be deployed on a remote host instance that can be
+    reached via SSH from the local machine. Playbooks are executed against
+    this remote host, and containers are deployed by running docker commands
+    on the Atomic host.
+
+    """
     def __init__(self, host_test, env_config_yaml,
                  artifacts, common_vars):
 

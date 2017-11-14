@@ -21,6 +21,38 @@ host_type_handlers = {
 
 def run_container_validation(image_url, chidata_url, config,
                              artifacts_directory, extra_variables):
+    """Runs a container validation against the target container image
+
+    This is the main worker function of the cvengine. It takes the parameters
+    for the container validation scenario, fetches the metadata file
+    and playbooks, parses all config, orchestrates setup of the target
+    environment, and finally executes the validation against the target
+    container platform.
+
+    Args:
+        image_url (str): Location of the container image. In most cases,
+            this should be a string that can be passed to the "docker pull"
+            command. Alternatively, this could be a full URL to a file that
+            gets fetched by the test playbooks and then loaded in docker.
+            The latter method is not handled by the cvengine and is left to
+            the playbooks to implement.
+        chidata_url (str): Location of the metadata file. This file will be
+            fetched and parsed to get information about the current scenario
+            (target platform, playbook locations, platform customizations,
+            etc.)
+        config (dict): Configuration info for the target platform and
+            environment. At a minimum, keys must exist for
+            "target_host_platform" and "environment". Further keys and subkeys
+            depend on the chosen environment.
+        artifacts_directory (str): The path to a directory where test
+            artifacts will be written to. The cvengine will copy all artifacts
+            to this location on the machine where the function is executed.
+        extra_variables (dict): Any extra variables that should be passed to
+            the playbooks. These will be passed to ALL playbooks using the
+            --extra-vars argument. NOTE: These variables will be overriden by
+            any variables defined in the metadata file.
+
+    """
     print('Downloading {0}'.format(chidata_url))
     context = ssl._create_unverified_context()
     chidata = urllib2.urlopen(chidata_url, context=context).read()
@@ -81,6 +113,13 @@ def run_container_validation(image_url, chidata_url, config,
 
 
 def main():
+    """Main entry point into container validation
+
+    This function is created as a script entry point in the $PATH when
+    installing the package. It expects the required parameters to be set
+    as environment variables. This function parses the environment variables
+    and passes them as arguments to the run_container_validation function.
+    """
     image_url = os.environ['CV_IMAGE_URL']
     cvdata_url = os.environ['CV_CVDATA_URL']
     cv_config = yaml.load(os.environ['CV_CONFIG'])
