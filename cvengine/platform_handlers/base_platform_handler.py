@@ -2,6 +2,8 @@ import json
 import tempfile
 import traceback
 
+from cvengine.util.ansible_handler import write_ansible_config, \
+        write_ansible_inventory
 from cvengine.util.fetch import fetch_remote_artifact
 from cvengine.util.run import run_ansible_cmd, run_cmd
 
@@ -69,6 +71,7 @@ class BasePlatformHandler(object):
                                               dir='/tmp')
         self.extra_vars_file = tempfile.NamedTemporaryFile(prefix='extra_vars',
                                                            suffix='.json')
+        self.ansible_config_file = write_ansible_config()
 
         ############################################################
         #                                                          #
@@ -77,9 +80,11 @@ class BasePlatformHandler(object):
         #                                                          #
         ############################################################
         self.ansible_cmd = None
-        self.ansible_data = None
         self.run_playbooks_locally = None
         self.fetch_artifact_cmd = None
+        self.remote_host = None
+        self.remote_host_creds = None
+        self.ansible_inv = None
         ############################################################
 
         self.extra_vars = {
@@ -132,8 +137,16 @@ class BasePlatformHandler(object):
             Exception: A generic exception if any of the playbooks fail
 
         """
+        if self.run_playbooks_locally:
+            self.ansible_inv = 'localhost, '
+        else:
+            creds_data = self.remote_host_creds
+            self.ansible_inv = write_ansible_inventory(**creds_data)
+
         run_ansible_cmd('mkdir {0}'.format(self.extra_vars['host_data_out']),
-                        self.ansible_data, local=self.run_playbooks_locally)
+                        self.ansible_inv,
+                        self.ansible_config_file,
+                        local=self.run_playbooks_locally)
 
         do_container_deploy = self.host_test.get('do_container_deploy', False)
         if do_container_deploy:
@@ -149,9 +162,10 @@ class BasePlatformHandler(object):
             try:
                 path = playbook['local_path']
                 ev = '@{0}'.format(self.extra_vars_file.name)
-                cmd = self.ansible_cmd.format(playbook_path=path,
-                                              extra_vars_file=ev,
-                                              **self.ansible_data)
+                cmd = self.ansible_cmd.format(cfg=self.ansible_config_file,
+                                              inventory=self.ansible_inv,
+                                              playbook_path=path,
+                                              extra_vars_file=ev)
                 run_cmd(cmd)
             except Exception:
                 print('Playbook failed, stopping execution.')
@@ -180,21 +194,14 @@ class BasePlatformHandler(object):
                                                      artifact,
                                                      self.host_data_out)
                 try:
-                    run_ansible_cmd(docker_cp, self.ansible_data)
+                    run_ansible_cmd(docker_cp,
+                                    self.ansible_inv, self.ansible_config_file)
                 except Exception:
                     pass  # Not grounds for had fail if nonexistent dir
 
-        if not self.run_playbooks_locally:
-            key = self.test_host['credentials']['ssh_key_path']
-            test_host_creds = {
-                'user': self.test_host['credentials']['user'],
-                'private_key_path': key,
-                'password': self.test_host['credentials'].get('password', None)
-            }
-
             print('Fetching container artifacts from host')
-            fetch_remote_artifact(self.test_host['ip_address'],
-                                  test_host_creds,
+            fetch_remote_artifact(self.remote_host,
+                                  self.remote_host_creds,
                                   self.host_data_out,
                                   artifacts_directory)
 
@@ -205,10 +212,10 @@ class BasePlatformHandler(object):
                     if self.run_playbooks_locally:
                         cmd = 'cp -r {0} {1}'.format(artifact,
                                                      artifacts_directory)
-                        run_ansible_cmd(cmd, self.ansible_data, local=True)
+                        run_ansible_cmd(cmd, local=True)
                     else:
-                        fetch_remote_artifact(self.test_host['ip_address'],
-                                              test_host_creds, artifact,
+                        fetch_remote_artifact(self.remote_host,
+                                              self.remote_host_creds, artifact,
                                               artifacts_directory)
                 except Exception:
                     pass  # Not grounds for had fail if nonexistent dir
