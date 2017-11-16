@@ -27,6 +27,7 @@ class AtomicHostHandler(BasePlatformHandler):
         user = credentials['user']
         key_path = credentials.get('ssh_key_path', None)
         password = credentials.get('password', None)
+        port = credentials.get('port', 22)
         if not key_path and not password:
             msg = 'Either a private key path or password must be given'
             raise ValueError(msg)
@@ -34,7 +35,8 @@ class AtomicHostHandler(BasePlatformHandler):
             'host': self.remote_host,
             'user': user,
             'ssh_key_path': key_path,
-            'password': password
+            'password': password,
+            'port': port
         }
 
         self.extra_vars['current_host_ip'] = self.test_host['ip_address']

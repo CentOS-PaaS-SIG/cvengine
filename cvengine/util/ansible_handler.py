@@ -2,7 +2,7 @@ import tempfile
 
 
 def write_ansible_inventory(host, user, ssh_key_path=None,
-                            password=None):
+                            password=None, port=None):
     """Write an ansible inventory file
 
     Creates a file on disk to be used as an ansible inventory file for a
@@ -44,6 +44,9 @@ def write_ansible_inventory(host, user, ssh_key_path=None,
     if ssh_key_path:
         key_line = '\n ansible_ssh_private_key_file={0}'
         contents += key_line.format(ssh_key_path)
+
+    if port:
+        contents += '\nansible_ssh_port={0}'.format(port)
 
     with open(inventory_file.name, 'w') as f:
         f.write(contents)
