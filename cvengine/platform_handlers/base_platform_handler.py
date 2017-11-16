@@ -200,10 +200,15 @@ class BasePlatformHandler(object):
                     pass  # Not grounds for had fail if nonexistent dir
 
             print('Fetching container artifacts from host')
-            fetch_remote_artifact(self.remote_host,
-                                  self.remote_host_creds,
-                                  self.host_data_out,
-                                  artifacts_directory)
+            try:
+                fetch_remote_artifact(self.remote_host,
+                                      self.remote_host_creds,
+                                      self.host_data_out,
+                                      artifacts_directory,
+                                      target_port=self.remote_host_creds['port'])
+            except:
+                print traceback.format_exc()
+                raise
 
         if self.artifacts and 'test_host_artifacts' in self.artifacts:
             for artifact in self.artifacts['test_host_artifacts']:
@@ -214,8 +219,10 @@ class BasePlatformHandler(object):
                                                      artifacts_directory)
                         run_ansible_cmd(cmd, local=True)
                     else:
+                        port = self.remote_host_creds['port']
                         fetch_remote_artifact(self.remote_host,
                                               self.remote_host_creds, artifact,
-                                              artifacts_directory)
+                                              artifacts_directory,
+                                              target_port=port)
                 except Exception:
                     pass  # Not grounds for had fail if nonexistent dir

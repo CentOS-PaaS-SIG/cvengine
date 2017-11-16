@@ -44,7 +44,7 @@ def get_file_type(ssh_connection, file_path):
         return 'File'
 
 
-def setup_ssh_connection(target_machine, target_credentials):
+def setup_ssh_connection(target_machine, target_credentials, port=22):
     """Helper function to instantiate a ssh connection to a remote host
 
     Instantiates a wrapper around an SSH connection to a remote host. A
@@ -66,9 +66,10 @@ def setup_ssh_connection(target_machine, target_credentials):
                                                         None),
                  'look_for_keys': True,
                  'allow_agent': True,
-                 'port': 22}
+                 'port': port}
     ssh = paramiko.SSHClient()
     ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(target_machine, **ssh_creds)
 
     return ssh
@@ -76,6 +77,7 @@ def setup_ssh_connection(target_machine, target_credentials):
 
 def fetch_remote_artifact(target_machine, target_credentials,
                           remote_file_path, artifacts_directory,
+                          target_port=22,
                           connect_from_host={'host': 'localhost'}):
     """Fetch an artifact from a remote machine
 
@@ -107,7 +109,8 @@ def fetch_remote_artifact(target_machine, target_credentials,
     destination_path = os.path.join(artifacts_directory, target_basename)
 
     ssh_connection = setup_ssh_connection(target_machine,
-                                          target_credentials)
+                                          target_credentials,
+                                          port=target_port)
 
     try:
         file_type = get_file_type(ssh_connection, remote_file_path)
