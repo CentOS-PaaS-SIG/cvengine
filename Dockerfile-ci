@@ -1,0 +1,26 @@
+FROM fedora:27
+MAINTAINER "Alex Corvin" <acorvin@redhat.com>
+
+RUN yum -y install git python2-setuptools \
+    sshpass libffi-devel gcc python-devel \
+    openssl-devel make nss_wrapper redhat-rpm-config \
+    libffi ansible standard-test-roles wget file \
+    findutils && yum clean all
+
+RUN pip install --upgrade pip && pip install --upgrade setuptools
+
+COPY . /cvengine
+RUN cd /cvengine && python setup.py install
+
+# Ensure that the root group has write access in $HOME
+# This is necessary because, when running a container in
+# Openshift, a random UID will be assigned at runtime. This
+# UID will not have a valid username, but will be a member
+# of the root group
+RUN chgrp -Rf root $HOME && chmod -Rf g+w $HOME
+
+COPY ci/standard-inventory-qcow2 /usr/share/ansible/inventory/standard-inventory-qcow2
+ENV ANSIBLE_INVENTORY=/usr/share/ansible/inventory/standard-inventory-qcow2
+ENV TEST_SUBJECTS=https://download.fedoraproject.org/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-27-20171110.1.x86_64.qcow2
+
+ENTRYPOINT ["bash"]

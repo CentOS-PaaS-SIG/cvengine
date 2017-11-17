@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: cvengine-ci-builder
+metadata:
+  annotations:
+    description: cvengine ci container
+    iconClass: cvengine-ci
+    tags: instant-app
+  name: cvengine-ci-builder
+objects:
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+    labels:
+    name: cvengine-ci
+  spec: {}
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: cvengine-ci
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: cvengine-ci:latest
+    resources: {}
+    source:
+      git:
+        ref: ${REPO_REF}
+        uri: ${REPO_URL}
+      type: Git
+    strategy:
+      dockerStrategy:
+        env:
+          - name: CONTAINER_NAME
+            value: cvengine-ci
+        dockerfilePath: Dockerfile-ci
+      type: Docker
+    triggers:
+    - type: ConfigChange
+parameters:
+- description: Git repository with Dockerfile and slave entrypoint.
+  displayName: Repository URL
+  name: REPO_URL
+  value: https://github.com/CentOS-PaaS-SIG/cvengine.git
+- description: The git ref or tag to use for customization.
+  displayName: Git Reference
+  name: REPO_REF
+  value: master
