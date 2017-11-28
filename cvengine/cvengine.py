@@ -1,14 +1,12 @@
 #! /usr/bin/env python2
 
-
 import os
-import ssl
 import traceback
 import urllib
-import urllib2
 import urlparse
 import yaml
 
+from .cvdata import CVData
 from .util import run
 from .platform_handlers.atomic_host_handler import AtomicHostHandler
 
@@ -53,28 +51,25 @@ def run_container_validation(image_url, chidata_url, config,
             any variables defined in the metadata file.
 
     """
-    print('Downloading {0}'.format(chidata_url))
-    context = ssl._create_unverified_context()
-    chidata = urllib2.urlopen(chidata_url, context=context).read()
-    chidata = yaml.load(chidata)
+    cvdata = CVData(image_url, chidata_url, config)
+    scenario = cvdata.scenario
+    artifacts = cvdata.artifacts
+    environment_config = cvdata.environment
 
-    print("CHIData Contents:")
-    print(chidata)
+    if not scenario:
+        msg = ('The specified target host platform did not match any '
+               'options configured in the metadata file. Supported '
+               'host_type values are: {0}')
+        raise ValueError(msg.format(host_type_handlers.keys()))
 
-    target_host_platform = config['target_host_platform']
-    host_test = None
-    for host in chidata['Test']:
-        if ((host['host_type'] == target_host_platform) or
-                (not target_host_platform and host['default'])):
-            host_test = host
-            break
-
-    if not host_test:
-        msg = 'Given host_type matched none in CHIData or no default provided.'
-        raise ValueError(msg)
+    if scenario['host_type'] not in host_type_handlers:
+        msg = ('{0} is not a valid host_type. Support host_type values'
+               'are: {1}')
+        raise ValueError(msg.format(scenario['host_type'],
+                                    host_type_handlers.keys()))
 
     # pre-download playbook files
-    playbooks = host_test['playbooks']
+    playbooks = scenario['playbooks']
     for pb in playbooks:
         url = pb['url']
         base_name = os.path.basename(urlparse.urlsplit(url).path)
@@ -87,20 +82,13 @@ def run_container_validation(image_url, chidata_url, config,
             raise Exception(msg)
         pb['local_path'] = new_path
 
-    if host_test['host_type'] not in host_type_handlers:
-        msg = '{} is not a valid host_type'.format(host_test['host_type'])
-        raise ValueError(msg)
-
     run.run_cmd('ansible-playbook --version')
     run.run_cmd('ansible --version')
 
-    artifacts = chidata.get('Artifacts')
     extra_variables['image_url'] = image_url
 
-    environment_config = config['environment']
-
-    handler_class = host_type_handlers[host_test['host_type']]
-    handler = handler_class(host_test, environment_config,
+    handler_class = host_type_handlers[scenario['host_type']]
+    handler = handler_class(scenario, environment_config,
                             artifacts, extra_variables)
     try:
         handler.run()
