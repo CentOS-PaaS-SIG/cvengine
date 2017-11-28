@@ -9,11 +9,13 @@ import yaml
 from .cvdata import CVData
 from .util import run
 from .platform_handlers.atomic_host_handler import AtomicHostHandler
+from .platform_handlers.fedora_handler import FedoraHandler
 
 
 host_type_handlers = {
     'dashost': AtomicHostHandler,
-    'atomic': AtomicHostHandler
+    'atomic': AtomicHostHandler,
+    'fedora': FedoraHandler
 }
 
 
