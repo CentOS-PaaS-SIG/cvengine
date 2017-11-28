@@ -124,6 +124,20 @@ class BasePlatformHandler(object):
         with open(self.extra_vars_file.name, 'w') as f:
             json.dump(extra_vars, f)
 
+    def setup(self):
+        """Base setup function for platform handlers
+
+        The setup function will be called before the run function. This
+        is intended to be used when some level of setup/initialization
+        is necessary to prepare the container platform. Not all platforms
+        will make use of this.
+        """
+        if self.run_playbooks_locally:
+            self.ansible_inv = 'localhost, '
+        else:
+            creds_data = self.remote_host_creds
+            self.ansible_inv = write_ansible_inventory(**creds_data)
+
     def run(self):
         """Execute the container validation on the target platform
 
@@ -137,12 +151,6 @@ class BasePlatformHandler(object):
             Exception: A generic exception if any of the playbooks fail
 
         """
-        if self.run_playbooks_locally:
-            self.ansible_inv = 'localhost, '
-        else:
-            creds_data = self.remote_host_creds
-            self.ansible_inv = write_ansible_inventory(**creds_data)
-
         run_ansible_cmd('mkdir {0}'.format(self.extra_vars['host_data_out']),
                         self.ansible_inv,
                         self.ansible_config_file,

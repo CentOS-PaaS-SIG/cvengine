@@ -91,6 +91,7 @@ def run_container_validation(image_url, chidata_url, config,
     handler = handler_class(scenario, environment_config,
                             artifacts, extra_variables)
     try:
+        handler.setup()
         handler.run()
     except Exception:
         msg = 'Error encountered while running handler: {0}'
