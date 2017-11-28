@@ -8,6 +8,7 @@ import yaml
 
 from .cvdata import CVData
 from .util import run
+from .environment_handlers.openstack_environment import OpenstackEnvironment
 from .environment_handlers.preconfigured_environment import \
         PreConfiguredEnvironment
 from .platform_handlers.atomic_host_handler import AtomicHostHandler
@@ -15,7 +16,8 @@ from .platform_handlers.fedora_handler import FedoraHandler
 
 
 environment_handlers = {
-    'preconfigured': PreConfiguredEnvironment
+    'preconfigured': PreConfiguredEnvironment,
+    'openstack': OpenstackEnvironment
 }
 
 platform_handlers = {
