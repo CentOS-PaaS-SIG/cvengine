@@ -209,12 +209,13 @@ class BasePlatformHandler(object):
 
             print('Fetching container artifacts from host')
             try:
+                port = self.remote_host_creds['port']
                 fetch_remote_artifact(self.remote_host,
                                       self.remote_host_creds,
                                       self.host_data_out,
                                       artifacts_directory,
-                                      target_port=self.remote_host_creds['port'])
-            except:
+                                      target_port=port)
+            except Exception:
                 print traceback.format_exc()
                 raise
 
