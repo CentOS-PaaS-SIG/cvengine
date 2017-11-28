@@ -9,11 +9,13 @@ import yaml
 from .cvdata import CVData
 from .util import run
 from .platform_handlers.atomic_host_handler import AtomicHostHandler
+from .platform_handlers.fedora_handler import FedoraHandler
 
 
 host_type_handlers = {
     'dashost': AtomicHostHandler,
-    'atomic': AtomicHostHandler
+    'atomic': AtomicHostHandler,
+    'fedora': FedoraHandler
 }
 
 
@@ -91,6 +93,7 @@ def run_container_validation(image_url, chidata_url, config,
     handler = handler_class(scenario, environment_config,
                             artifacts, extra_variables)
     try:
+        handler.setup()
         handler.run()
     except Exception:
         msg = 'Error encountered while running handler: {0}'

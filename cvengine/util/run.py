@@ -45,7 +45,7 @@ def run_cmd(cmd, virtualenv=None, working_directory=None, env_vars={}):
 
 
 def run_ansible_cmd(cmd, inventory, ansible_config,
-                    local=False, sudo=True):
+                    module='command', local=False, sudo=True):
     """Helper function to run an ansible command
 
     Execute the specified command in a local shell via ansible. This is used
@@ -60,6 +60,9 @@ def run_ansible_cmd(cmd, inventory, ansible_config,
             be a path to an ansible inventory file. Additionally, it could be
             the string "localhost", or an IP address
         ansible_config (str): A path to an ansible config file
+        module (str, optional): The ansible module to use. This is passed to
+            the ansible command as the value of the '-m' argument. Defaults
+            to 'command'.
         local (bool, optional): Whether the command should be executed against
             the local machine. If false, we assume that the target of the
             ansible command is a remote host. Defaults to False.
@@ -70,14 +73,15 @@ def run_ansible_cmd(cmd, inventory, ansible_config,
     if local:
         ans = ('ANSIBLE_CONFIG={cfg} '
                'ansible all '
-               '-v -i "{inventory}" -c local -m cmd -a "{cmd}"')
+               '-v -i "{inventory}" -c local -m {mod} -a "{cmd}"')
         ans = ans.format(cfg=ansible_config, inventory=inventory,
-                         cmd=cmd)
+                         cmd=cmd, mod=module)
     else:
         ans = ('ANSIBLE_CONFIG={cfg} '
                'ansible all '
-               '-v -i "{inventory}" -a "{cmd}" {become}')
+               '-v -i "{inventory}" {become} -m {mod} -a "{cmd}"')
         ans = ans.format(cfg=ansible_config, cmd=cmd,
+                         mod=module,
                          inventory=inventory,
                          become=('--become' if sudo else ''))
 
