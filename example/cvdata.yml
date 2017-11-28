@@ -3,6 +3,10 @@ Test:
     instance_name: cvengine_example
     playbooks:
       - url: https://github.com/CentOS-PaaS-SIG/cvengine/raw/master/example/atomic-playbook.yml
+  - host_type: fedora
+    instance_name: cvengine_example
+    playbooks:
+      - url: https://github.com/CentOS-PaaS-SIG/cvengine/raw/master/example/atomic-playbook.yml
 
 Artifacts:
   container_artifacts:
