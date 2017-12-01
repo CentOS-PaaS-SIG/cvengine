@@ -22,6 +22,5 @@ RUN chgrp -Rf root $HOME && chmod -Rf g+w $HOME
 
 COPY ci/standard-inventory-qcow2 /usr/share/ansible/inventory/standard-inventory-qcow2
 ENV ANSIBLE_INVENTORY=/usr/share/ansible/inventory/standard-inventory-qcow2
-ENV TEST_SUBJECTS=https://download.fedoraproject.org/pub/alt/atomic/stable/Fedora-Atomic-27-20171110.1/CloudImages/x86_64/images/Fedora-Atomic-27-20171110.1.x86_64.qcow2
 
 ENTRYPOINT ["bash"]
