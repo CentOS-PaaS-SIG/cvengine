@@ -77,13 +77,13 @@ def run_ansible_cmd(cmd, inventory, ansible_config,
     if local:
         ans = ('ANSIBLE_CONFIG={cfg} '
                'ansible all '
-               '-v -i "{inventory}" -c local -m {mod} -a "{cmd}"')
+               '-i "{inventory}" -c local -m {mod} -a "{cmd}"')
         ans = ans.format(cfg=ansible_config, inventory=inventory,
                          cmd=cmd, mod=module)
     else:
         ans = ('ANSIBLE_CONFIG={cfg} '
                'ansible all '
-               '-v -i "{inventory}" {become} -m {mod} -a "{cmd}"')
+               '-i "{inventory}" {become} -m {mod} -a "{cmd}"')
         ans = ans.format(cfg=ansible_config, cmd=cmd,
                          mod=module,
                          inventory=inventory,

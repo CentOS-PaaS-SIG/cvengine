@@ -42,5 +42,5 @@ class AtomicHostHandler(BasePlatformHandler):
         self.run_playbooks_locally = False
         self.ansible_cmd = ('ANSIBLE_CONFIG={cfg} '
                             'ansible-playbook '
-                            '-v -i "{inventory}" {playbook_path} '
+                            '-i "{inventory}" {playbook_path} '
                             '--extra-vars "{extra_vars_file}"')
