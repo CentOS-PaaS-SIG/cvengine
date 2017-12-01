@@ -17,4 +17,5 @@ setup(name='cvengine',
                         'pyyaml',
                         'ansible',
                         'python-openstackclient',
-                        'python-neutronclient'])
+                        'python-neutronclient',
+                        'requests'])

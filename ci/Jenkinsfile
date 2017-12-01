@@ -59,6 +59,9 @@ properties(
                                 string(defaultValue: '172.30.1.1:5000', description: 'Docker repo url for Openshift instance', name: 'DOCKER_REPO_URL'),
                                 string(defaultValue: 'continuous-infra', description: 'Project namespace for Openshift operations', name: 'OPENSHIFT_NAMESPACE'),
                                 string(defaultValue: 'jenkins', description: 'Service Account for Openshift operations', name: 'OPENSHIFT_SERVICE_ACCOUNT'),
+                                string(defaultValue: 'alpine', description: 'The container image to be validated', name: 'CVENGINE_IMAGE_URL'),
+                                string(defaultValue: 'https://raw.githubusercontent.com/CentOS-PaaS-SIG/cvengine/master/example/cvdata.yml', description: 'The container validation metadata file URL', name: 'CVENGINE_METADATA_URL'),
+                                string(defaultValue: 'atomic', description: 'The container platform to validate the container against', name: 'CVENGINE_TARGET_PLATFORM'),
                                 booleanParam(defaultValue: false, description: 'Force generation of the image', name: 'GENERATE_IMAGE'),
                         ]
                 ),
@@ -125,10 +128,12 @@ podTemplate(name: podName,
                     currentStage = "cvengine-ci"
                     stage(currentStage) {
                         // Set stage specific vars
-                        //pipelineUtils.setStageEnvVars(currentStage)
+                        env."CV_IMAGE_URL" = "${env.CVENGINE_IMAGE_URL}"
+                        env."CV_CVDATA_URL" = "${env.CVENGINE_METADATA_URL}"
+                        env."CV_TARGET_PLATFORM" = "${env.CVENGINE_TARGET_PLATFORM}"
 
                         // Run functional tests
-                        pipelineUtils.executeInContainer(currentStage, "cvengine-ci", "/cvengine/ci/run_cvengine_ci.sh")
+                        pipelineUtils.executeInContainer(currentStage, "cvengine-ci", "/cvengine/ci/run_cvengine.py")
                     }
 
                 } catch (e) {
