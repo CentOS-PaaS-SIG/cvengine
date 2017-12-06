@@ -1,3 +1,7 @@
+import time
+import traceback
+
+from .fetch import setup_ssh_connection
 from subprocess import Popen, PIPE
 
 
@@ -86,3 +90,20 @@ def run_ansible_cmd(cmd, inventory, ansible_config,
                          become=('--become' if sudo else ''))
 
     return run_cmd(ans)
+
+
+def wait_for_ssh(host, username, password, wait_time=30, sleep_interval=5):
+    creds = {'user': username, 'password': password}
+    start_time = time.time()
+    end_time = start_time + wait_time
+    connected = False
+    while time.time() < end_time:
+        try:
+            setup_ssh_connection(host, creds)
+            connected = True
+            break
+        except Exception:
+            time.sleep(sleep_interval)
+    if not connected:
+        msg = 'The remote host failed to become available via ssh: {0}'
+        raise Exception(msg.format(traceback.format_exc()))

@@ -68,7 +68,8 @@ class CVData():
         scenario = None
         for platform in metadata['Test']:
             if ((platform['host_type'] == target_platform) or
-                    (platform['default'] and target_platform is None)):
+                    (platform.get('default', False) and target_platform
+                     is None)):
                 scenario = platform
                 break
 

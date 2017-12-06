@@ -8,11 +8,19 @@ import yaml
 
 from .cvdata import CVData
 from .util import run
+from .environment_handlers.openstack_environment import OpenstackEnvironment
+from .environment_handlers.preconfigured_environment import \
+        PreConfiguredEnvironment
 from .platform_handlers.atomic_host_handler import AtomicHostHandler
 from .platform_handlers.fedora_handler import FedoraHandler
 
 
-host_type_handlers = {
+environment_handlers = {
+    'preconfigured': PreConfiguredEnvironment,
+    'openstack': OpenstackEnvironment
+}
+
+platform_handlers = {
     'dashost': AtomicHostHandler,
     'atomic': AtomicHostHandler,
     'fedora': FedoraHandler
@@ -62,13 +70,13 @@ def run_container_validation(image_url, chidata_url, config,
         msg = ('The specified target host platform did not match any '
                'options configured in the metadata file. Supported '
                'host_type values are: {0}')
-        raise ValueError(msg.format(host_type_handlers.keys()))
+        raise ValueError(msg.format(platform_handlers.keys()))
 
-    if scenario['host_type'] not in host_type_handlers:
+    if scenario['host_type'] not in platform_handlers:
         msg = ('{0} is not a valid host_type. Support host_type values'
                'are: {1}')
         raise ValueError(msg.format(scenario['host_type'],
-                                    host_type_handlers.keys()))
+                                    platform_handlers.keys()))
 
     # pre-download playbook files
     playbooks = scenario['playbooks']
@@ -89,18 +97,24 @@ def run_container_validation(image_url, chidata_url, config,
 
     extra_variables['image_url'] = image_url
 
-    handler_class = host_type_handlers[scenario['host_type']]
-    handler = handler_class(scenario, environment_config,
-                            artifacts, extra_variables)
+    environment = environment_config.get('handler', 'preconfigured')
+    environment_class = environment_handlers[environment]
+    environment = environment_class(environment_config)
+    environment.prepare()
+
+    platform_class = platform_handlers[scenario['host_type']]
+    platform = platform_class(scenario, environment,
+                              artifacts, extra_variables)
     try:
-        handler.setup()
-        handler.run()
+        platform.setup()
+        platform.run()
     except Exception:
         msg = 'Error encountered while running handler: {0}'
         print(msg.format(traceback.format_exc()))
         raise
     finally:
-        handler.teardown(artifacts_directory)
+        platform.teardown(artifacts_directory)
+        environment.teardown()
 
 
 def main():

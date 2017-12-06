@@ -27,19 +27,17 @@ class BasePlatformHandler(object):
 
     EXEC_CMD_SUFFIX = 'exec -i {0}'
 
-    def __init__(self, host_test, env_config_yaml,
+    def __init__(self, host_test, environment,
                  artifacts, common_vars):
         """
         Args:
             host_test (dict): Dictionary containing information about the
                 currently running scenario. Includes the playbooks to be
                 executed, instance name, and playbook variables
-            env_config_yaml (dict): Dictionary containing information about
-                the target environment. Environments are the representation
-                in cvengine of the hosts/systems on which a platform gets
-                deployed (or already is deployed). Specific subkeys depend on
-                the specific environment type that the validation is being run
-                against.
+            environment (:obj: `BaseEnvironmentHandler`): An object
+                representing the hosts/systems on which a platform gets
+                deployed (or already is deployed). This will be a specific
+                sub-class implementation of the BaseEnvironmentHandler.
             artifacts (dict): Dictionary containing sets of artifacts to be
                 retrieved after running the validation.
             common_vars (dict): Dictionary containing a set of variables to be
@@ -55,7 +53,6 @@ class BasePlatformHandler(object):
               handler.
         """
         self.host_test = host_test
-        self.env_config = env_config_yaml
         self.playbooks = self.host_test['playbooks']
         self.instance_name = self.host_test.get('instance_name',
                                                 'container_instance')

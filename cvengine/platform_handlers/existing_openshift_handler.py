@@ -21,11 +21,11 @@ class ExistingOpenshiftHandler(BasePlatformHandler):
           official support for this.
 
     """
-    def __init__(self, host_test, env_config_yaml,
+    def __init__(self, host_test, environment,
                  artifacts, common_vars):
 
         super(ExistingOpenshiftHandler, self).__init__(host_test,
-                                                       env_config_yaml,
+                                                       environment,
                                                        artifacts, common_vars)
 
         oc_path = get_install_oc()

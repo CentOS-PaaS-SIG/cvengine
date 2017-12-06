@@ -15,4 +15,6 @@ setup(name='cvengine',
                         'scp',
                         'diaper',
                         'pyyaml',
-                        'ansible'])
+                        'ansible',
+                        'python-openstackclient',
+                        'python-neutronclient'])
