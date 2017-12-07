@@ -65,12 +65,23 @@ class CVData():
             dict: The metadata information for the target scenario
         """
         target_platform = config.get('target_host_platform', None)
+        implemented_platforms = []
         scenario = None
         for platform in metadata['Test']:
-            if ((platform['host_type'] == target_platform) or
+            platform_name = platform['host_type']
+            implemented_platforms.append(platform_name)
+            if ((platform_name == target_platform) or
                     (platform.get('default', False) and target_platform
                      is None)):
                 scenario = platform
                 break
+
+        if not scenario:
+            msg = ('The specified target host platform ({target}) did not '
+                   'match any options configured in the metadata file. '
+                   'Definitions were found for the following container '
+                   'platforms: {platforms}')
+            raise ValueError(msg.format(target=target_platform,
+                                        platforms=implemented_platforms))
 
         return scenario
