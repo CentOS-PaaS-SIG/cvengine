@@ -1,6 +1,3 @@
-env.ghprbGhRepository = env.ghprbGhRepository ?: 'CentOS-PaaS-SIG/ci-pipeline'
-env.ghprbActualCommit = env.ghprbActualCommit ?: 'master'
-
 // Needed for podTemplate()
 env.CVENGINE_TAG = env.CVENGINE_TAG ?: 'stable'
 env.SLAVE_TAG = env.SLAVE_TAG ?: 'stable'
@@ -15,20 +12,14 @@ executionID = UUID.randomUUID().toString()
 // Pod name to use
 podName = 'cvengine-' + executionID
 
-library identifier: "ci-pipeline@${env.ghprbActualCommit}",
+library identifier: "ci-pipeline@master",
         retriever: modernSCM([$class: 'GitSCMSource',
-                              remote: "https://github.com/${env.ghprbGhRepository}",
-                              traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait'],
-                                       [$class: 'RefSpecsSCMSourceTrait',
-                                        templates: [[value: '+refs/heads/*:refs/remotes/@{remote}/*'],
-                                                    [value: '+refs/pull/*:refs/remotes/origin/pr/*']]]]])
+                              remote: "https://github.com/CentOS-Paas-SIG/ci-pipeline"])
 properties(
         [
                 buildDiscarder(logRotator(artifactDaysToKeepStr: '30', artifactNumToKeepStr: '', daysToKeepStr: '90', numToKeepStr: '')),
                 parameters(
                         [
-                                string(defaultValue: 'master', description: '', name: 'ghprbActualCommit'),
-                                string(defaultValue: 'CentOS-PaaS-SIG/ci-pipeline', description: '', name: 'ghprbGhRepository'),
                                 string(defaultValue: 'stable', description: 'Tag for Jenkins slave image', name: 'SLAVE_TAG'),
                                 string(defaultValue: 'stable', description: 'Tag for cvengine image', name: 'CVENGINE_TAG'),
                                 string(defaultValue: '172.30.254.79:5000', description: 'Docker repo url for Openshift instance', name: 'DOCKER_REPO_URL'),
