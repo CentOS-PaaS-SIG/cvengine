@@ -66,12 +66,6 @@ def run_container_validation(image_url, chidata_url, config,
     artifacts = cvdata.artifacts
     environment_config = cvdata.environment
 
-    if not scenario:
-        msg = ('The specified target host platform did not match any '
-               'options configured in the metadata file. Supported '
-               'host_type values are: {0}')
-        raise ValueError(msg.format(platform_handlers.keys()))
-
     if scenario['host_type'] not in platform_handlers:
         msg = ('{0} is not a valid host_type. Support host_type values'
                'are: {1}')
