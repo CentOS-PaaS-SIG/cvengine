@@ -29,8 +29,8 @@ properties(
                         [
                                 string(defaultValue: 'master', description: '', name: 'ghprbActualCommit'),
                                 string(defaultValue: 'CentOS-PaaS-SIG/ci-pipeline', description: '', name: 'ghprbGhRepository'),
-                                string(defaultValue: 'stable', description: 'Tag for rpmbuild image', name: 'SLAVE_TAG'),
-                                string(defaultValue: 'stable', description: 'Tag for rpmbuild image', name: 'CVENGINE_TAG'),
+                                string(defaultValue: 'stable', description: 'Tag for Jenkins slave image', name: 'SLAVE_TAG'),
+                                string(defaultValue: 'stable', description: 'Tag for cvengine image', name: 'CVENGINE_TAG'),
                                 string(defaultValue: '172.30.1.1:5000', description: 'Docker repo url for Openshift instance', name: 'DOCKER_REPO_URL'),
                                 string(defaultValue: 'continuous-infra', description: 'Project namespace for Openshift operations', name: 'OPENSHIFT_NAMESPACE'),
                                 string(defaultValue: 'jenkins', description: 'Service Account for Openshift operations', name: 'OPENSHIFT_SERVICE_ACCOUNT'),
@@ -56,9 +56,9 @@ podTemplate(name: podName,
                         args: '${computer.jnlpmac} ${computer.name}',
                         command: '',
                         workingDir: '/workDir'),
-                containerTemplate(name: 'cvengine-ci',
+                containerTemplate(name: 'cvengine',
                         alwaysPullImage: true,
-                        image: DOCKER_REPO_URL + '/' + OPENSHIFT_NAMESPACE + '/cvengine-ci:' + CVENGINE_TAG,
+                        image: DOCKER_REPO_URL + '/' + OPENSHIFT_NAMESPACE + '/cvengine:' + CVENGINE_TAG,
                         ttyEnabled: true,
                         command: 'cat',
                         privileged: true,
@@ -96,7 +96,7 @@ podTemplate(name: podName,
                         pipelineUtils.verifyPod(OPENSHIFT_NAMESPACE, env.NODE_NAME)
                     }
 
-                    currentStage = "cvengine-ci"
+                    currentStage = "cvengine"
                     stage(currentStage) {
                         // Set stage specific vars
                         env."CV_IMAGE_URL" = "${env.CVENGINE_IMAGE_URL}"
@@ -104,7 +104,7 @@ podTemplate(name: podName,
                         env."CV_TARGET_PLATFORM" = "${env.CVENGINE_TARGET_PLATFORM}"
 
                         // Run the container validation
-                        pipelineUtils.executeInContainer(currentStage, "cvengine-ci", "/cvengine/ci/run_cvengine.py")
+                        pipelineUtils.executeInContainer(currentStage, "cvengine", "/cvengine/ci/run_cvengine.py")
                     }
 
                 } catch (e) {
