@@ -10,12 +10,4 @@ setup(name='cvengine',
       packages=find_packages(),
       entry_points={
           'console_scripts': ['cvengine=cvengine.cvengine:main']
-      },
-      install_requires=['paramiko',
-                        'scp',
-                        'diaper',
-                        'pyyaml',
-                        'ansible',
-                        'python-openstackclient',
-                        'python-neutronclient',
-                        'requests'])
+      })
