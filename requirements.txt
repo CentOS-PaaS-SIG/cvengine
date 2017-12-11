@@ -1,0 +1,9 @@
+paramiko
+scp
+diaper
+pyyaml
+ansible
+python-openstackclient
+python-neutronclient
+cryptography >= 2.1.4
+requests
