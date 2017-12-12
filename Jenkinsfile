@@ -29,13 +29,9 @@ executionID = UUID.randomUUID().toString()
 // Pod name to use
 podName = 'fedora-atomic-' + executionID + '-' + TARGET_BRANCH
 
-library identifier: "ci-pipeline@${env.ghprbActualCommit}",
+library identifier: "ci-pipeline@master",
         retriever: modernSCM([$class: 'GitSCMSource',
-                              remote: "https://github.com/${env.ghprbGhRepository}",
-                              traits: [[$class: 'jenkins.plugins.git.traits.BranchDiscoveryTrait'],
-                                       [$class: 'RefSpecsSCMSourceTrait',
-                                        templates: [[value: '+refs/heads/*:refs/remotes/@{remote}/*'],
-                                                    [value: '+refs/pull/*:refs/remotes/origin/pr/*']]]]])
+                              remote: "https://github.com/CentOS-Paas-SIG/ci-pipeline"])
 properties(
         [
                 buildDiscarder(logRotator(artifactDaysToKeepStr: '30', artifactNumToKeepStr: '', daysToKeepStr: '90', numToKeepStr: '')),
