@@ -36,7 +36,6 @@ objects:
         env:
           - name: CONTAINER_NAME
             value: cvengine
-        dockerfilePath: Dockerfile-ci
       type: Docker
     triggers:
     - type: ConfigChange

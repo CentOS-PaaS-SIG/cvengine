@@ -149,34 +149,3 @@ or version of cvengine.
 At container runtime, the cvengine command is executed. See the section
 above on running the cvengine command for notes on environment variables
 that must be specified when running the container.
-
-### Notes on running in the CentOS-PaaS-SIG CI Pipeline
-CVEngine may at some point run within the CentOS-PaaS-SIG CI Pipeline (the CI
-Pipeline). This repository includes several objects that implement a PoC for
-how this might be facilitated. These objects are:
-
-  * Dockerfile-ci This is a Dockerfile that builds a cvengine image with
-    additional artifcts (ansible playbook, scripts, inventory handler) for
-    running a container validation in a CI pipeline scenario.
-  * ci/cvengine-ci-template.yaml This is an OpenShift yaml template for
-    building a cvengine-ci image using the Dockerfile-ci file.
-  * ci/standard-inventory.qcow This is copied directly out of the CI Pipeline
-    repository. This is a custom Ansible inventory script that handles
-    dynamically deploying a VM on a container based on a target QCOW
-    image. At ansible runtime, the VM is deployed and the playbook is
-    executed on that VM. For CVEngine in the CI pipeline, this is used to
-    deploy an Atomic host VM within a cvengine container then execute
-    the validation abainst the Atomic host instance.
-  * ci/run_cvengine_ci.yaml This script is the entrypoint of the cvengine
-    container when run in the CI Pipeline. It first fetches a Fedora Atomic
-    image, then executes the ansible playbook (in doing so, the Atomic VM is
-    deployed, then cvengine is executed against it).
-  * ci/run_cvengine_ci.yaml This Ansible playbook determines the connection
-    information (IP address, username, password) of the deployed Atomic host
-    instance then executes cvengine (locally within the container) against
-    the VM
-  * ci/Jenkinsfile This defines a Jenkins pipeline for running the container
-    validation in the CI Pipeline. Note: this was clones from the CI Pipeline
-    repository to simplify the development process, and likely will not
-    exist after we determine how to integrate CVEngine with the CI Pipeline.
-
